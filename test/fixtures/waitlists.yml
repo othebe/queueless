@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  user_id: 1
+  place_id: MyString
+  party_size: 1
+  end_time: 2013-06-01 14:04:15
+  status: 1
+
+two:
+  user_id: 1
+  place_id: MyString
+  party_size: 1
+  end_time: 2013-06-01 14:04:15
+  status: 1

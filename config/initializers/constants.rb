@@ -1,0 +1,15 @@
+STATUS_TYPE = {
+	:ACTIVE => 1,
+	:INACTIVE => 2
+}
+
+ACCOUNT_TYPE = {
+	:USER => 1,
+	:BUSINESS => 2
+}
+
+WAITLIST_STATUS = {
+	:WAITING => 1,
+	:SEATED => 2,
+	:CANCELLED =>3
+}
