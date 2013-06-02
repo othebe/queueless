@@ -2,7 +2,6 @@ class UsersController < ApplicationController
 	#Title:			generate_qr
 	#Description:	Generate QR code for a user
 	def generate_qr
-		logger.info request.host
 		#Check name
 		render :json=>{:success=>false, :msg=>'Name is required.'} and return if (!params.has_key?(:name))
 		
@@ -19,7 +18,7 @@ class UsersController < ApplicationController
 		for i in 0..(mobile_len-1)
 			mobile += params[:mobile][i] if (params[:mobile][i].to_i.to_s == params[:mobile][i])
 		end
-		logger.info(mobile)
+		
 		#Find user by phone number
 		user = User.find_by_mobile_num(mobile)
 

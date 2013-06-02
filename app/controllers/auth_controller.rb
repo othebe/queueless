@@ -12,7 +12,7 @@ class AuthController < ApplicationController
 		render :json=>{:success=>false, :msg=>'Incorrect password.'} and return if (@user.nil?)
 		
 		session['user'] = @user
-		data = {}
+		data = {:user_id => @user.id, :name=>(@user.firstname+' '+@user.lastname).strip, :mobile=>@user.mobile_num}
 		data = {
 			:place_id => @user.place_id
 		} if (@user.account_type == ACCOUNT_TYPE[:BUSINESS])

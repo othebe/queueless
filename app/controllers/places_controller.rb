@@ -11,11 +11,14 @@ class PlacesController < ApplicationController
 			next if (place.nil?)
 			average_wait_time = Waitlist.get_average_wait_time(place.id)
 			current_queue_size = Waitlist.get_current_queue_size(place.id)
-			
+		
+		
 			response.push({
+				:pid => place.id,
 				:gid => gid,
 				:avg_wait_time => average_wait_time,
-				:current_queue_size => current_queue_size
+				:current_queue_size => current_queue_size,
+				:has_promo => (place.id==2)
 			})
 		end
 		

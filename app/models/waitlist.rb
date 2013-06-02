@@ -44,10 +44,31 @@ class Waitlist < ActiveRecord::Base
 		return
 	end
 	
+	#Title:			get_booking
+	#Description:	Finds a user's booking
+	def self.get_booking(user_id)
+		waiting = self.where({:user_id=>user_id, :status=>WAITLIST_STATUS[:WAITING]}).first
+		
+		return waiting
+	end
+	
+	#Title:			get_queue_position
+	#Description:	Gets user's position in queue
+	def self.get_queue_position(user_id, place_id)
+		rank = 1;
+		waiting = self.where({:place_id=>place_id, :status=>WAITLIST_STATUS[:WAITING]}).order('created_at ASC')
+		waiting.each do |w|
+			break if (w.user_id==user_id)
+			rank += 1
+		end
+		
+		return rank
+	end
+	
 	#Title:			get_current_list
 	#Description:	Gets the current waitlist
 	def self.get_current_list(place_id)
-		list = Waitlist.where({:place_id=>place_id, :status=>WAITLIST_STATUS[:WAITING]})
+		list = Waitlist.where({:place_id=>place_id, :status=>WAITLIST_STATUS[:WAITING]}).order('id ASC')
 		
 		return list
 	end

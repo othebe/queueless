@@ -34,7 +34,7 @@ class WaitlistsController < ApplicationController
 		render :json=>{:success=>false, :msg=>'Place not found.'} and return if (!params.has_key?(:place_id))
 		
 		Waitlist.seat(params[:user_id], params[:place_id])
-		
+	
 		render :json=>{:success=>true, :msg=>'success'}
 	end
 	
@@ -47,7 +47,7 @@ class WaitlistsController < ApplicationController
 		render :json=>{:success=>false, :msg=>'Place not found.'} and return if (!params.has_key?(:place_id))
 		
 		Waitlist.cancel(params[:user_id], params[:place_id])
-		
+
 		render :json=>{:success=>true, :msg=>'success'}
 	end
 	
@@ -64,17 +64,53 @@ class WaitlistsController < ApplicationController
 		data = []
 		waitlist = Waitlist.get_current_list(place.id)
 		waitlist.each do |w|
+			logger.info w.inspect
+			next if (w.status!=1)
 			estimated_waiting_time = Waitlist.get_average_wait_time(place.id) * Waitlist.get_current_queue_size(place.id)
+			estimated_seating_time = (Time.now+estimated_waiting_time)
 			data.push({
 				:user_id => w.user.id,
 				:name => (w.user.firstname+' '+w.user.lastname).strip,
+				:mobile => w.user.mobile_num,
 				:party_size => w.party_size,
-				:check_in_started => w.created_at,
-				:estimated_seating_time => (Time.now+estimated_waiting_time)
+				:check_in_started => w.created_at.hour.to_s + ':' + w.created_at.min.to_s,
+				:estimated_seating_time => estimated_seating_time.hour.to_s + ':' + estimated_seating_time.min.to_s
 			})
-			logger.info w.inspect
 		end
 		
 		render :json=>{:success=>true, :data=>data}
+	end
+	
+	#Title:			get_booking_data
+	#Description:	Determines if a user is on a waitlist
+	def get_booking_data
+		#Check User ID
+		render :json=>{:success=>false, :msg=>'User ID not found.'} and return if (!params.has_key?(:user_id))
+		
+		booking = Waitlist.get_booking(params[:user_id])
+		
+		data = {}
+		if (!booking.nil?)
+			estimated_waiting_time = Waitlist.get_average_wait_time(booking.place_id) * Waitlist.get_current_queue_size(booking.place_id)
+			estimated_seating_time = (Time.now+estimated_waiting_time)
+			
+			data[:position] = Waitlist.get_queue_position(booking.user_id, booking.place_id)
+			data[:place_id] = booking.place_id
+			data[:check_in_started] = booking.created_at.hour.to_s + ':' + booking.created_at.min.to_s
+			data[:estimated_seating_time] = estimated_seating_time.hour.to_s + ':' + estimated_seating_time.min.to_s
+			
+			#QR code data
+			qr_data = {
+				:user_id => booking.user_id,
+				:party_size => booking.party_size
+			}
+			qr_code = QrCode.where(qr_data).first || QrCode.create(qr_data)
+
+			data[:qr_code_src] = 'https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl='+request.host_with_port+'/waitlists/queue_up_qr/?qid='+qr_code.id.to_s
+		else
+			data = nil
+		end
+		
+		render :json=>{:success=>true, :msg=>(!booking.nil?), :data=>data}
 	end
 end

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Queueless</title>
+		
+		<script src="js/jquery.min.js"></script>
+		
+		<!-- QR code stuff -->
+		<script type="text/javascript" src="js/grid.js"></script>
+		<script type="text/javascript" src="js/version.js"></script>
+		<script type="text/javascript" src="js/detector.js"></script>
+		<script type="text/javascript" src="js/formatinf.js"></script>
+		<script type="text/javascript" src="js/errorlevel.js"></script>
+		<script type="text/javascript" src="js/bitmat.js"></script>
+		<script type="text/javascript" src="js/datablock.js"></script>
+		<script type="text/javascript" src="js/bmparser.js"></script>
+		<script type="text/javascript" src="js/datamask.js"></script>
+		<script type="text/javascript" src="js/rsdecoder.js"></script>
+		<script type="text/javascript" src="js/gf256poly.js"></script>
+		<script type="text/javascript" src="js/gf256.js"></script>
+		<script type="text/javascript" src="js/decoder.js"></script>
+		<script type="text/javascript" src="js/qrcode.js"></script>
+		<script type="text/javascript" src="js/findpat.js"></script>
+		<script type="text/javascript" src="js/alignpat.js"></script>
+		<script type="text/javascript" src="js/databr.js"></script>
+		
+		<!-- Layout stuff -->
+		<script src="js/custom.modernizr.js"></script>
+		<script src="js/handlebars.js"></script>
+		<script src="js/app.js"></script>
+		<script src="js/foundation.min.js"></script>
+		
+		<script src="js/ql_biz.js"></script>
+		
+		<link rel="stylesheet" href="css/normalize.min.css">
+		<link rel="stylesheet" href="css/foundation.css">
+		<link rel="stylesheet" href="css/style.css">
+	</head>
+
+	<body>
+		<div id="main" style="height:100%;">
+			<!-- Main content goes here -->
+		</div>
+
+		<!-- QR code stuff -->
+<!--
+		<video autoplay></video>
+		<canvas id="qr-canvas" width="800" height="600" style="width: 800px; height: 600px; display: none;"></canvas>
+-->
+
+
+
+
+		<!-- ******************************************************************************************************** -->
+		<!-- ******************************************  Templates  ************************************************* -->
+		
+		
+		<!-- Login page -->
+		<script id="login-page-template" type="text/x-handlebars-template">
+			<div class="login-wrapper">
+				<div id="pusher"></div>
+				<div id="content-login">
+					<div class="row">
+						<div class="large-12 columns">
+
+							<div class="form-wrapper">
+								<img class="logo" src="img/logo.png" alt="">
+								<form action="">
+									<div class="row collapse">
+										<div class="small-2 large-2 columns">
+											<span class="prefix"><img src="img/element/phone.png" alt=""></span>
+										</div>
+										<div class="small-10 large-10 columns">
+											<input type="text" id="login-handle" placeholder="Phone Number" >
+										</div>
+									</div>
+									<div class="row collapse">
+										<div class="small-2 large-2 columns">
+											<span class="prefix"><img src="img/element/password.png" alt=""></span>
+										</div>
+										<div class="small-10 large-10 columns">
+											<input type="password" id="login-password" placeholder="Password" >
+										</div>
+									</div>
+									
+									<input class="button expand radius" value="Sign In" onclick="obj.login(this);" >
+								</form>
+								<div class="section-header">
+									<p>
+										<span>OR</span>
+									</p>
+								</div>
+								<a href="" class="button expand radius alert">Sign Up</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+		
+		<!-- Waiting list -->
+		<script id="waiting-list-template" type="text/x-handlebars-template">
+			<div class="waiting-wrapper">
+				<header class="top-header">
+					<div class="row">
+						<div class="large-12 columns">
+							<ul class="control inline-list left">
+								<li>&lt;</li>
+							</ul>
+							<p class="title">Waiting List (<span id="queue_size" class="number">{{size}}</span>)</p>
+							<ul class="control inline-list right" onclick="obj.show_add_customer_qr();">
+								<li>+</li>
+							</ul>
+						</div>
+					</div>
+				</header>
+
+				<div id="content-waiting-list">
+					<div class="row">
+						<div class="large-12 columns">
+							<ul class="waiting-list">
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+		
+		<!-- Waiting list entry -->
+		<script id="waiting-list-entry-template" type="text/x-handlebars-template">
+			<li>
+				<div class="waiting-item">
+					<div class="waiting-description">
+						<div class="name">{{name}}</div>
+						<div class="description left"><b>Check in:</b> {{check_in_started}} <br/> Table of {{party_size}}</div>
+						<div class="description right"><b>Est. time of arrival:</b> {{estimated_seating_time}}</div>
+					</div>
+					<div class="waiting-arrow right" onclick="obj.toggle_wait_context(this);"></div>
+				</div>
+				<ul class="waiting-action inline-list">
+					<li class="icon ic-tick" onclick="obj.seat({{user_id}}, this);"></li>
+					<li class="icon ic-delete" onclick="obj.cancel({{user_id}}, this);"></li>
+					<li class="icon ic-chat"></li>
+				</ul>
+			</li>
+		</script>
+		
+		
+		<script id="add-customer-qr-template" type="text/x-handlebars-template">
+			<div class="add-queue-wrapper">
+				<header class="top-header">
+					<div class="row">
+						<div class="large-12 columns">
+							<ul class="control inline-list left" onclick="obj.show_waiting_list();">
+								<li class="icon ic-back">&lt;</li>
+							</ul>
+							<p class="title">Scan QR</p>
+						</div>
+					</div>
+				</header>
+				<div id="content-scan-qr">
+					<div class="row">
+						<div class="large-12 columns">
+							<video autoplay style="width:100%;"></video>
+							<canvas id="qr-canvas" width="800" height="600" style="width: 800px; height: 600px; display: none;"></canvas>
+						</div>
+					</div>
+				</div>
+				<div id="content-register-manually">
+					<div class="row">
+						<div class="large-12 columns">
+							<div class="section-header">
+								<p>
+									<span>OR</span>
+								</p>
+							</div>
+							<div class="text-center">
+								<a href="" class="main button radius">REGISTER MANUALLY</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+		
+		
+	</body>
+ </html>
